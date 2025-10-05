@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Signup
 router.post("/signup", async (req, res) => {
-  const { email, password, role, department, section, year } = req.body;
+  const { name, email, password, role, subRole, department, section, year } = req.body;
 
   try {
     const existingUser = await User.findOne({ email });
@@ -15,9 +15,11 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
+      name,
       email,
       password: hashedPassword,
       role,
+      subRole,
       department,
       section,
       year
