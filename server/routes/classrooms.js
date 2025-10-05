@@ -1,42 +1,38 @@
-import express from 'express'
-// import { getClassroomById, listenToClassroomUpdates } from '../firebase.js' // Placeholder for Firebase
+const express = require("express");
+const Classroom = require("../models/classrooms");
 
-const router = express.Router()
+const router = express.Router();
 
-// Get classroom data by ID
-router.get('/:id', async (req, res) => {
-  const classroomId = req.params.id
-  // const classroomData = await getClassroomById(classroomId)
-  // Simulate classroom data for now
-  const classroomData = {
-    id: classroomId,
-    name: 'Sample Classroom',
-    students: [],
-    devices: [],
-    // ...other classroom info
+// GET all classrooms
+router.get("/", async (req, res) => {
+  try {
+    const classes = await Classroom.find();
+    res.json(classes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  res.json(classroomData)
-})
+});
 
-// (Optional) Real-time updates via Server-Sent Events (SSE)
-router.get('/:id/stream', (req, res) => {
-  const classroomId = req.params.id
-  res.set({
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
-  })
-  res.flushHeaders()
+// GET a single classroom by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const cls = await Classroom.findById(req.params.id);
+    if (!cls) return res.status(404).json({ message: "Class not found" });
+    res.json(cls);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
-  // Placeholder: send a dummy update every 5 seconds
-  const interval = setInterval(() => {
-    res.write(`data: ${JSON.stringify({ classroomId, updated: new Date() })}\n\n`)
-  }, 5000)
+// POST a new classroom
+router.post("/", async (req, res) => {
+  try {
+    const classroom = new Classroom(req.body);
+    const saved = await classroom.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
-  req.on('close', () => {
-    clearInterval(interval)
-    res.end()
-  })
-})
-
-export default router
+module.exports = router;
